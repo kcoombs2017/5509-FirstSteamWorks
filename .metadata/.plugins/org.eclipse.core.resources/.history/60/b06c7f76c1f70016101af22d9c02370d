@@ -19,6 +19,7 @@ public class ConveyorBelt {
 			}else if (bumperMove() != 0){
 				conveyorMotor.set(bumperMove());
 			}else{
+				
 				stop();
 			}	
 		}

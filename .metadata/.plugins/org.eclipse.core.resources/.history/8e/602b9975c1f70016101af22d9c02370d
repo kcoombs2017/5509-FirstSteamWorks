@@ -24,6 +24,8 @@ public class Robot extends IterativeRobot {
 	String autoSelected;
 	SendableChooser<String> chooser;
 
+	final String autonDelayKey = "autonDelay";
+	final String autonTimeKey = "autonTime";
 	final String autonSpeedKey = "autonSpeed";
 	final String speedPerKey = "speed%";
 	final String climbSpeedKey = "Rope Speed";
@@ -34,7 +36,8 @@ public class Robot extends IterativeRobot {
 	final double defaultConveySpeed = conveyorBelt.conveySpeed;
 	final double defaultAutonSpeed = .15;
 
-	double autonSpeed = .15;
+	double autonTime;
+	double autonSpeed;
 
 	public static Joystick joystick1;
 	public static Joystick joystick2;
@@ -69,12 +72,14 @@ public class Robot extends IterativeRobot {
 		joystick2 = new Joystick(1);
 		chooser = new SendableChooser<String>();
 		chooser.addDefault("Off", "");
-		chooser.addObject("Mode 1 - Left Side", "1");
-		chooser.addObject("Mode 2 - Forward", "2");
-		chooser.addObject("Mode 3 - Right Side", "3");
+		chooser.addObject("Mode 1 - Move Forward", "1");
+		chooser.addObject("Mode 2 - something", "2");
+		chooser.addObject("Mode 3 - something", "3");
 
 		SmartDashboard.putData("Auto choices", chooser);
-		SmartDashboard.putNumber(autonSpeedKey, defaultAutonSpeed);
+		SmartDashboard.putNumber(autonDelayKey, 0);
+		SmartDashboard.putNumber(autonTimeKey, 0);
+		SmartDashboard.putNumber(autonSpeedKey, 0);
 		SmartDashboard.putNumber(speedPerKey, defaultDrivePer);
 		SmartDashboard.putNumber(climbSpeedKey, defaultClimbSpeed);
 		SmartDashboard.putNumber(conveySpeedKey, defaultConveySpeed);
@@ -98,23 +103,19 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void autonomousInit() {
 		autoSelected = chooser.getSelected();
-
-		SmartDashboard.putString("Auton Mode", autoSelected);
-
 		System.out.println("Auto selected: " + autoSelected);
 
 		drive.stop();
 
+		double delay = SmartDashboard.getNumber(autonDelayKey, 0);
 		autonSpeed = SmartDashboard.getNumber(autonSpeedKey, defaultAutonSpeed);
 
+		System.out.println("Time Delay " + delay);
+		time.start();
+
 		drive.backLeftMotor.setEncPosition(0);
-
+		
 		gyro.calibrate();
-
-		autonCheckPhase1 = false;
-		autonCheckPhase2 = false;
-		autonCheckPhase3 = false;
-		autonCheckPhase4 = false;
 	}
 
 	/**
@@ -127,13 +128,12 @@ public class Robot extends IterativeRobot {
 			if (autonCheckPhase1 == false) {
 				autonMovePhase1();
 			} else if (autonCheckPhase2 == false) {
-				autonMovePhase2(55, 1);
+				autonMovePhase2(60, 1);
 			} else if (autonCheckPhase3 == false) {
 				autonMovePhase3();
 			}
 			break;
 		case "2":
-			System.out.println(autonCheckPhase1 + " " + younkinsToRevolutions());
 			if (autonCheckPhase1 == false) {
 				autonMovePhase1();
 			} else {
@@ -144,7 +144,7 @@ public class Robot extends IterativeRobot {
 			if (autonCheckPhase1 == false) {
 				autonMovePhase1();
 			} else if (autonCheckPhase2 == false) {
-				autonMovePhase2(55, -1);
+				autonMovePhase2(60, -1);
 			} else if (autonCheckPhase3 == false) {
 				autonMovePhase3();
 			}
@@ -155,23 +155,22 @@ public class Robot extends IterativeRobot {
 		}
 	}
 
-	private double younkinsToRevolutions() {
+	private double feetToYounkinRevolutions() {
 		double num = (Math.abs(drive.backLeftMotor.getPosition())) / oneRevolutionInYounkins;
-		num *= 25.13;
-		num /= 12;
-		
-		System.out.println(num);
-		
+		num = num * 25.13;
+		num = num / 12;
 		return num;
 	}
 
 	private void autonMovePhase1() {
-		if (younkinsToRevolutions() < 5.1) {
+		System.out.println(drive.backLeftMotor.getEncPosition());
+
+		if (feetToYounkinRevolutions() < 4.9) {
 			drive.backRightMotor.set(autonSpeed);
 			drive.frontRightMotor.set(autonSpeed);
 			drive.backLeftMotor.set(autonSpeed);
 			drive.frontLeftMotor.set(autonSpeed);
-		} else if (younkinsToRevolutions() > 5.3) {
+		} else if (feetToYounkinRevolutions() > 5.1) {
 			drive.backRightMotor.set(-autonSpeed);
 			drive.frontRightMotor.set(-autonSpeed);
 			drive.backLeftMotor.set(-autonSpeed);
@@ -204,7 +203,7 @@ public class Robot extends IterativeRobot {
 	private void autonMovePhase3() {
 		System.out.println(drive.backLeftMotor.getEncPosition());
 
-		if (younkinsToRevolutions() < 2.9) {
+		if (feetToYounkinRevolutions() < 2.9) {
 			drive.backRightMotor.set(autonSpeed);
 			drive.frontRightMotor.set(autonSpeed);
 			drive.backLeftMotor.set(autonSpeed);
