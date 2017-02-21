@@ -1,2 +1,0 @@
-INDEX VERSION 1.129+C:\Users\Robots\Documents\GitHub\5509-FirstSteamWorks\.metadata\.plugins\org.eclipse.jdt.core
-2725819668.index
