@@ -1,4 +1,5 @@
 *
 !.gitignore
 !*.java
+!*.class
 !*/
