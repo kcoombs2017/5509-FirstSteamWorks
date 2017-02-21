@@ -154,7 +154,9 @@ public class Robot extends IterativeRobot {
 			break;
 		}
 	}
-
+	
+	// Returns how far the robot has moved in feet
+	// Possible todos: add a parameter to autonMovePhase1 (and 3) for number of feet to go, add new input to smart dashboard to set that parameter - so you can adjust distance on the fly.
 	private double younkinsToRevolutions() {
 		double num = (Math.abs(drive.backLeftMotor.getPosition())) / oneRevolutionInYounkins;
 		num *= 25.13;
