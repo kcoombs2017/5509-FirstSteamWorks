@@ -1,5 +1,2 @@
-*
-!.gitignore
-!*.java
-!*.class
-!*/
+.git/*
+.metadata/*
