@@ -28,6 +28,8 @@ public class Robot extends IterativeRobot {
 	final String speedPerKey = "speed%";
 	final String climbSpeedKey = "Rope Speed";
 	final String conveySpeedKey = "Conveyor Speed";
+	final String feetTurnedKey = "Feet Turned";
+	final String feetForwardKey = "Feet Forward";
 
 	final double defaultDrivePer = drive.limitPercent;
 	final double defaultClimbSpeed = ropeClimber.climbSpeed;
@@ -52,6 +54,14 @@ public class Robot extends IterativeRobot {
 	private boolean autonCheckPhase2 = false;
 	private boolean autonCheckPhase3 = false;
 	private boolean autonCheckPhase4 = false;
+	
+	public double feetForward;
+	public double feetTurned;
+	public double angle;
+	
+	public double defaultFeetForward = 4.8;
+	public double defaultFeetTurned = 4.3;
+	public double defaultAngle = 55;
 
 	public int oneRevolutionInYounkins = 1400;
 
@@ -106,7 +116,7 @@ public class Robot extends IterativeRobot {
 		drive.stop();
 
 		autonSpeed = SmartDashboard.getNumber(autonSpeedKey, defaultAutonSpeed);
-
+		
 		drive.backLeftMotor.setEncPosition(0);
 
 		gyro.calibrate();
@@ -125,28 +135,28 @@ public class Robot extends IterativeRobot {
 		switch (autoSelected) {
 		case "1":
 			if (autonCheckPhase1 == false) {
-				autonMovePhase1();
+				autonMovePhase1(feetForward);
 			} else if (autonCheckPhase2 == false) {
-				autonMovePhase2(55, 1);
+				autonMovePhase2(angle, 1);
 			} else if (autonCheckPhase3 == false) {
-				autonMovePhase3();
+				autonMovePhase3(feetTurned);
 			}
 			break;
 		case "2":
 			System.out.println(autonCheckPhase1 + " " + younkinsToRevolutions());
 			if (autonCheckPhase1 == false) {
-				autonMovePhase1();
+				autonMovePhase1(feetForward);
 			} else {
 				drive.stop();
 			}
 			break;
 		case "3":
 			if (autonCheckPhase1 == false) {
-				autonMovePhase1();
+				autonMovePhase1(feetForward);
 			} else if (autonCheckPhase2 == false) {
 				autonMovePhase2(55, -1);
 			} else if (autonCheckPhase3 == false) {
-				autonMovePhase3();
+				autonMovePhase3(feetTurned);
 			}
 			break;
 		default:
@@ -156,7 +166,8 @@ public class Robot extends IterativeRobot {
 	}
 	
 	// Returns how far the robot has moved in feet
-	// Possible todos: add a parameter to autonMovePhase1 (and 3) for number of feet to go, add new input to smart dashboard to set that parameter - so you can adjust distance on the fly.
+	// Possible todos: add a parameter to autonMovePhase1 (and 3) for number of feet to go, add new input to smart dashboard to set that parameter - so you can adjust distance for phases on the fly.
+	// Also for phase 2?
 	private double younkinsToRevolutions() {
 		double num = (Math.abs(drive.backLeftMotor.getPosition())) / oneRevolutionInYounkins;
 		num *= 25.13;
@@ -167,13 +178,13 @@ public class Robot extends IterativeRobot {
 		return num;
 	}
 
-	private void autonMovePhase1() {
-		if (younkinsToRevolutions() < 5.1) {
+	private void autonMovePhase1(double feet) {
+		if (younkinsToRevolutions() < feet - .1) {
 			drive.backRightMotor.set(autonSpeed);
 			drive.frontRightMotor.set(autonSpeed);
 			drive.backLeftMotor.set(autonSpeed);
 			drive.frontLeftMotor.set(autonSpeed);
-		} else if (younkinsToRevolutions() > 5.3) {
+		} else if (younkinsToRevolutions() > feet + .1) {
 			drive.backRightMotor.set(-autonSpeed);
 			drive.frontRightMotor.set(-autonSpeed);
 			drive.backLeftMotor.set(-autonSpeed);
@@ -185,7 +196,7 @@ public class Robot extends IterativeRobot {
 		}
 	}
 
-	private void autonMovePhase2(int gryoAngle, int posOrNeg) {
+	private void autonMovePhase2(double gryoAngle, int posOrNeg) {
 		if (Math.abs(gyro.getAngle()) < gryoAngle - 1) {
 			drive.backLeftMotor.set(autonSpeed * posOrNeg);
 			drive.frontLeftMotor.set(autonSpeed * posOrNeg);
@@ -203,10 +214,10 @@ public class Robot extends IterativeRobot {
 		}
 	}
 
-	private void autonMovePhase3() {
+	private void autonMovePhase3(double feet) {
 		System.out.println(drive.backLeftMotor.getEncPosition());
 
-		if (younkinsToRevolutions() < 2.9) {
+		if (younkinsToRevolutions() < feet) {
 			drive.backRightMotor.set(autonSpeed);
 			drive.frontRightMotor.set(autonSpeed);
 			drive.backLeftMotor.set(autonSpeed);
