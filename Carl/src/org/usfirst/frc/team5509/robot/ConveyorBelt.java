@@ -5,6 +5,7 @@ import com.ctre.CANTalon;
 public class ConveyorBelt {
 	public CANTalon conveyorMotor;
 	public double conveySpeed = .75;
+	public double bumperConveySpeed = .45;
 
 	public void Init() {
 		conveyorMotor = new CANTalon(5);
@@ -40,9 +41,9 @@ public class ConveyorBelt {
 		if ((Robot.joystick2.getRawButton(5) == true) && (Robot.joystick2.getRawButton(6) == true)) {
 			return 0;
 		} else if (Robot.joystick2.getRawButton(5) == true) {
-			return .3;
+			return bumperConveySpeed;
 		} else if (Robot.joystick2.getRawButton(6) == true) {
-			return -.3;
+			return -bumperConveySpeed;
 		} else {
 			return 0;
 		}
