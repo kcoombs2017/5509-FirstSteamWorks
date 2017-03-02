@@ -35,12 +35,6 @@ public class Robot extends IterativeRobot {
 	final String autonAngleKey = "Auton Angle";
 	final String gyroFixAngleKey = "Angle of Gyro in Phase 1";
 
-	final double defaultDrivePer = drive.limitPercent;
-	final double defaultClimbSpeed = ropeClimber.climbSpeed;
-	final double defaultConveySpeed = conveyorBelt.conveySpeed;
-	final double defaultBumperConveySpeed = conveyorBelt.bumperConveySpeed;
-	final double defaultAutonSpeed = .2;
-
 	public static Joystick joystick1;
 	public static Joystick joystick2;
 
@@ -65,11 +59,16 @@ public class Robot extends IterativeRobot {
 	public double angle;
 	public double gyroFixAngle;
 
-	public double defaultFeetForwardCenter = 4.8;
-	public double defaultFeetForward = 4.8;
-	public double defaultFeetTurned = 4.3;
-	public double defaultAngle = 55;
+	final double defaultAutonSpeed = .15;
+	public double defaultFeetForwardCenter = 5.8;
+	public double defaultFeetForward = 4.5;
+	public double defaultFeetTurned = 5.9;
+	public double defaultAngle = 60;
 	public double defaultGyroFixAngle = 2.5;
+	final double defaultDrivePer = drive.limitPercent;
+	final double defaultClimbSpeed = ropeClimber.climbSpeed;
+	final double defaultConveySpeed = conveyorBelt.conveySpeed;
+	final double defaultBumperConveySpeed = conveyorBelt.bumperConveySpeed;
 
 	public int oneRevolutionInYounkins = 1400;
 
@@ -104,7 +103,7 @@ public class Robot extends IterativeRobot {
 		SmartDashboard.putNumber(feetForwardKey, defaultFeetForward);
 		SmartDashboard.putNumber(feetTurnedKey, defaultFeetTurned);
 		SmartDashboard.putNumber(gyroFixAngleKey, defaultGyroFixAngle);
-		
+
 		gyro.calibrate();
 
 		conveyorBelt.Init();
@@ -243,15 +242,15 @@ public class Robot extends IterativeRobot {
 			drive.backLeftMotor.set(autonSpeed + .05);
 			drive.frontLeftMotor.set(autonSpeed + .05);
 		} else if (younkinsToRevolutions() < feet - .1) {
-			drive.backRightMotor.set(autonSpeed);
-			drive.frontRightMotor.set(autonSpeed);
-			drive.backLeftMotor.set(autonSpeed);
-			drive.frontLeftMotor.set(autonSpeed);
+			drive.backRightMotor.set(autonSpeed + .05);
+			drive.frontRightMotor.set(autonSpeed + .05);
+			drive.backLeftMotor.set(autonSpeed + .05);
+			drive.frontLeftMotor.set(autonSpeed + .05);
 		} else if (younkinsToRevolutions() > feet + .1) {
-			drive.backRightMotor.set(-autonSpeed);
-			drive.frontRightMotor.set(-autonSpeed);
-			drive.backLeftMotor.set(-autonSpeed);
-			drive.frontLeftMotor.set(-autonSpeed);
+			drive.backRightMotor.set(-autonSpeed - .05);
+			drive.frontRightMotor.set(-autonSpeed - .05);
+			drive.backLeftMotor.set(-autonSpeed - .05);
+			drive.frontLeftMotor.set(-autonSpeed - .05);
 		} else {
 			drive.stop();
 			autonCheckPhase1 = true;
@@ -261,15 +260,15 @@ public class Robot extends IterativeRobot {
 
 	private void autonMovePhase2(double gryoAngle, int posOrNeg) {
 		if (Math.abs(gyro.getAngle()) < gryoAngle - 1) {
-			drive.backLeftMotor.set(autonSpeed * posOrNeg);
-			drive.frontLeftMotor.set(autonSpeed * posOrNeg);
-			drive.backRightMotor.set(-autonSpeed * posOrNeg);
-			drive.frontRightMotor.set(-autonSpeed * posOrNeg);
+			drive.backLeftMotor.set((autonSpeed + .05) * posOrNeg);
+			drive.frontLeftMotor.set((autonSpeed + .05) * posOrNeg);
+			drive.backRightMotor.set((-autonSpeed - .05) * posOrNeg);
+			drive.frontRightMotor.set((-autonSpeed - .05) * posOrNeg);
 		} else if (Math.abs(gyro.getAngle()) > gryoAngle + 1) {
-			drive.backLeftMotor.set(-autonSpeed * posOrNeg);
-			drive.frontLeftMotor.set(-autonSpeed * posOrNeg);
-			drive.backRightMotor.set(autonSpeed * posOrNeg);
-			drive.frontRightMotor.set(autonSpeed * posOrNeg);
+			drive.backLeftMotor.set((-autonSpeed - .05) * posOrNeg);
+			drive.frontLeftMotor.set((-autonSpeed - .05) * posOrNeg);
+			drive.backRightMotor.set((autonSpeed + .05) * posOrNeg);
+			drive.frontRightMotor.set((autonSpeed + .05) * posOrNeg);
 		} else {
 			drive.stop();
 			autonCheckPhase2 = true;
@@ -281,10 +280,10 @@ public class Robot extends IterativeRobot {
 		System.out.println(drive.backLeftMotor.getEncPosition());
 
 		if (younkinsToRevolutions() < feet) {
-			drive.backRightMotor.set(autonSpeed - .05);
-			drive.frontRightMotor.set(autonSpeed - .05);
-			drive.backLeftMotor.set(autonSpeed - .05);
-			drive.frontLeftMotor.set(autonSpeed - .05);
+			drive.backRightMotor.set(autonSpeed);
+			drive.frontRightMotor.set(autonSpeed);
+			drive.backLeftMotor.set(autonSpeed);
+			drive.frontLeftMotor.set(autonSpeed);
 		} else {
 			drive.stop();
 			autonCheckPhase3 = true;
