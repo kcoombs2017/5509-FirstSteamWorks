@@ -10,6 +10,7 @@ public class RopeClimber {
 
 	private double startSpeed = .50;
 	public double climbSpeed = 1;
+	public double backwardsClimbSpeed = .5;
 
 	public void Init() {
 		ropeMotor1 = new CANTalon(6);
@@ -25,12 +26,12 @@ public class RopeClimber {
 		} else if (Robot.joystick2.getRawButton(1) == true) {
 			if (time.get() == 0) {
 				time.start();
-			}		
+			}
 			ropeMotor1.set(getTime() * .88);
 			ropeMotor2.set(getTime());
 		} else if (Robot.joystick2.getRawButton(2) == true) {
-			ropeMotor1.set(-.25 *.88);
-			ropeMotor2.set(-.25);
+			ropeMotor1.set(-backwardsClimbSpeed * .88);
+			ropeMotor2.set(-backwardsClimbSpeed);
 			if (time.get() != 0) {
 				time.stop();
 				time.reset();
@@ -49,7 +50,7 @@ public class RopeClimber {
 		if (time.get() == 0) {
 			return climbSpeed;
 		}
-		
+
 		System.out.println(time.get() + " = time");
 
 		if (time.get() <= .5) {
