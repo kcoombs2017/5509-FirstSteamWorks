@@ -1,6 +1,10 @@
 package org.usfirst.frc.team5509.robot;
 
+import edu.wpi.cscore.CameraServerJNI;
+import edu.wpi.cscore.UsbCamera;
+import edu.wpi.cscore.VideoMode;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
+import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.IterativeRobot;
@@ -22,59 +26,85 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class Robot extends IterativeRobot {
 	// Smart Dashboard
 	String autoSelected;
-	SendableChooser<String> chooser;
+	SendableChooser<String> chooser = new SendableChooser<String>();
 
-	final String autonSpeedKey = "autonSpeed";
-	final String speedPerKey = "speed%";
-	final String climbSpeedKey = "Rope Speed";
-	final String conveySpeedKey = "Conveyor Speed";
-	final String bumperConveySpeedKey = "Bumper Conveyor Speed";
-	final String feetTurnedKey = "Feet Turned";
-	final String feetForwardKey = "Feet Forward";
-	final String feetForwardCenterKey = "Feet Forward Center";
-	final String autonAngleKey = "Auton Angle";
-	final String gyroFixAngleKey = "Angle of Gyro in Phase 1";
+	/******** Auton ************/
 
+	// Speed Auton
+	private final String AUTON_SPEED_KEY = "Auton - Speed";
+	private double autonSpeed;
+	public final double DEFAULT_AUTON_SPEED = .15;
+
+	// *************************************
+
+	// Feet Auton
+	private final String FEET_TURNED_KEY = "Auton - Feet Turned";
+	private double feetTurned;
+	public final double DEFAULT_FEET_TURNED = 5.9;
+
+	private final String FEET_FORWARD_KEY = "Auton - Feet Forward";
+	private double feetForward;
+	public final double DEFAULT_FEET_FORWARD = 4.5;
+
+	private final String FEET_FORWARD_CENTER_KEY = "Auton - Feet Forward Center";
+	private double feetForwardCenter;
+	public final double DEFAULT_FEET_FORWARD_CENTER = 5.8;
+
+	// ********************************************
+
+	// Angles Auton
+	private final String AUTON_ANGLE_KEY = "Auton - Angle to turn";
+	private double angle;
+
+	public final double DEFAULT_AUTON_ANGLE = 60;
+	private final String GYRO_FIX_ANGLE_KEY = "Auton - Angle of Gyro in Phase 1 (Forward)";
+
+	private double gyroFixAngle;
+	public final double DEFAULT_GYRO_FIX_ANGLE = 1;
+
+	// *******************************************
+
+	/***********************/
+
+	/******** Teleop ************/
+
+	// Speed Teleop
+	private final String SPEED_PERCENTAGE_KEY = "Teleop - Speed";
+	private final String CLIMB_SPEED_KEY = "Teleop - Rope Speed";
+	private final String CONVEYOR_SPEED_KEY = "Teleop - Conveyor Speed";
+	private final String BUMPER_CONVEYOR_SPEED_KEY = "Teleop - Bumper Conveyor Speed";
+
+	public final double DEFAULT_DRIVE_SPEED_PERCENTAGE = drive.limitPercent;
+	public final double DEFAULT_CLIMB_SPEED = ropeClimber.climbSpeed;
+	public final double DEFAULT_CONVEYOR_SPEED = conveyorBelt.conveySpeed;
+	public final double DEFAULT_BUMPER_CONVEYOR_SPEED = conveyorBelt.bumperConveySpeed;
+
+	/*************************************/
+
+	// Joysticks
 	public static Joystick joystick1;
 	public static Joystick joystick2;
 
-	public Relay light = new Relay(0);
-
+	// Instantiating classes
 	private static Drive drive = new Drive();
 	private static ConveyorBelt conveyorBelt = new ConveyorBelt();
 	private static RopeClimber ropeClimber = new RopeClimber();
 
-	public Timer time = new Timer();
-	public ADXRS450_Gyro gyro = new ADXRS450_Gyro();
-
+	// Auton Checks
 	private boolean autonCheckPhase1 = false;
 	private boolean autonCheckPhase2 = false;
 	private boolean autonCheckPhase3 = false;
-	private boolean autonCheckPhase4 = false;
-
-	public double autonSpeed;
-	public double feetForwardCenter;
-	public double feetForward;
-	public double feetTurned;
-	public double angle;
-	public double gyroFixAngle;
-
-	final double defaultAutonSpeed = .15;
-	public double defaultFeetForwardCenter = 5.8;
-	public double defaultFeetForward = 4.5;
-	public double defaultFeetTurned = 5.9;
-	public double defaultAngle = 60;
-	public double defaultGyroFixAngle = 2.5;
-	final double defaultDrivePer = drive.limitPercent;
-	final double defaultClimbSpeed = ropeClimber.climbSpeed;
-	final double defaultConveySpeed = conveyorBelt.conveySpeed;
-	final double defaultBumperConveySpeed = conveyorBelt.bumperConveySpeed;
-
-	public int oneRevolutionInYounkins = 1400;
+	private boolean autonCheckPhaseCenter1 = false;
 
 	// Sensors
-	public DigitalInput magSensor = new DigitalInput(2);
-	Ultrasonic sonar = new Ultrasonic(1, 0);
+	public final DigitalInput MAGNET_SENSOR = new DigitalInput(2);
+	public final Ultrasonic SONAR_SENSOR = new Ultrasonic(1, 0);
+	public final ADXRS450_Gyro GYRO = new ADXRS450_Gyro();
+	public final Relay light = new Relay(0);
+	public final Timer time = new Timer();
+
+	// Actual numbers
+	public final int ONE_REVOLUTION_IN_YOUNKINS = 1000;
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -82,10 +112,11 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void robotInit() {
+		CameraServer.getInstance().startAutomaticCapture();
+
 		joystick1 = new Joystick(0);
 		joystick2 = new Joystick(1);
 
-		chooser = new SendableChooser<String>();
 		chooser.addDefault("Off", "");
 		chooser.addObject("Mode 1 - Left Side", "1");
 		chooser.addObject("Mode 2 - Forward", "2");
@@ -93,18 +124,18 @@ public class Robot extends IterativeRobot {
 
 		SmartDashboard.putData("Auto choices", chooser);
 
-		SmartDashboard.putNumber(autonSpeedKey, defaultAutonSpeed);
-		SmartDashboard.putNumber(speedPerKey, defaultDrivePer);
-		SmartDashboard.putNumber(climbSpeedKey, defaultClimbSpeed);
-		SmartDashboard.putNumber(conveySpeedKey, defaultConveySpeed);
-		SmartDashboard.putNumber(bumperConveySpeedKey, defaultBumperConveySpeed);
-		SmartDashboard.putNumber(autonAngleKey, defaultAngle);
-		SmartDashboard.putNumber(feetForwardCenterKey, defaultFeetForwardCenter);
-		SmartDashboard.putNumber(feetForwardKey, defaultFeetForward);
-		SmartDashboard.putNumber(feetTurnedKey, defaultFeetTurned);
-		SmartDashboard.putNumber(gyroFixAngleKey, defaultGyroFixAngle);
+		SmartDashboard.putNumber(AUTON_SPEED_KEY, DEFAULT_AUTON_SPEED);
+		SmartDashboard.putNumber(SPEED_PERCENTAGE_KEY, DEFAULT_DRIVE_SPEED_PERCENTAGE);
+		SmartDashboard.putNumber(CLIMB_SPEED_KEY, DEFAULT_DRIVE_SPEED_PERCENTAGE);
+		SmartDashboard.putNumber(CONVEYOR_SPEED_KEY, DEFAULT_CONVEYOR_SPEED);
+		SmartDashboard.putNumber(BUMPER_CONVEYOR_SPEED_KEY, DEFAULT_BUMPER_CONVEYOR_SPEED);
+		SmartDashboard.putNumber(AUTON_ANGLE_KEY, DEFAULT_AUTON_ANGLE);
+		SmartDashboard.putNumber(FEET_FORWARD_CENTER_KEY, DEFAULT_FEET_FORWARD_CENTER);
+		SmartDashboard.putNumber(FEET_FORWARD_KEY, DEFAULT_FEET_FORWARD);
+		SmartDashboard.putNumber(FEET_TURNED_KEY, DEFAULT_FEET_TURNED);
+		SmartDashboard.putNumber(GYRO_FIX_ANGLE_KEY, DEFAULT_GYRO_FIX_ANGLE);
 
-		gyro.calibrate();
+		GYRO.calibrate();
 
 		conveyorBelt.Init();
 		drive.Init();
@@ -131,12 +162,12 @@ public class Robot extends IterativeRobot {
 		drive.stop();
 
 		SmartDashboard.putString("Auton Mode", autoSelected);
-		autonSpeed = SmartDashboard.getNumber(autonSpeedKey, defaultAutonSpeed);
-		angle = SmartDashboard.getNumber(autonAngleKey, defaultAngle);
-		feetForwardCenter = SmartDashboard.getNumber(feetForwardCenterKey, defaultFeetForwardCenter);
-		feetForward = SmartDashboard.getNumber(feetForwardKey, defaultFeetForward);
-		feetTurned = SmartDashboard.getNumber(feetTurnedKey, defaultFeetTurned);
-		gyroFixAngle = SmartDashboard.getNumber(gyroFixAngleKey, defaultGyroFixAngle);
+		autonSpeed = SmartDashboard.getNumber(AUTON_SPEED_KEY, DEFAULT_AUTON_SPEED);
+		angle = SmartDashboard.getNumber(AUTON_ANGLE_KEY, DEFAULT_AUTON_ANGLE);
+		feetForwardCenter = SmartDashboard.getNumber(FEET_FORWARD_CENTER_KEY, DEFAULT_FEET_FORWARD_CENTER);
+		feetForward = SmartDashboard.getNumber(FEET_FORWARD_KEY, DEFAULT_FEET_FORWARD);
+		feetTurned = SmartDashboard.getNumber(FEET_TURNED_KEY, DEFAULT_FEET_TURNED);
+		gyroFixAngle = SmartDashboard.getNumber(GYRO_FIX_ANGLE_KEY, DEFAULT_GYRO_FIX_ANGLE);
 
 		drive.backLeftMotor.setEncPosition(0);
 		drive.backRightMotor.setEncPosition(0);
@@ -146,7 +177,8 @@ public class Robot extends IterativeRobot {
 		autonCheckPhase1 = false;
 		autonCheckPhase2 = false;
 		autonCheckPhase3 = false;
-		autonCheckPhase4 = false;
+
+		autonCheckPhaseCenter1 = false;
 	}
 
 	/**
@@ -157,90 +189,72 @@ public class Robot extends IterativeRobot {
 		switch (autoSelected) {
 		case "1":
 			if (autonCheckPhase1 == false) {
-				autonMovePhase1(feetForward);
+				autonSideMovePhase1(feetForward);
 			} else if (autonCheckPhase2 == false) {
-				autonMovePhase2(angle, 1);
+				autonSideMovePhase2(angle, 1);
 			} else if (autonCheckPhase3 == false) {
-				autonMovePhase3(feetTurned);
+				autonSideMovePhase3(feetTurned);
 			}
 			break;
 		case "2":
-			System.out.println(autonCheckPhase1 + " " + younkinsToRevolutions());
-			if (autonCheckPhase1 == false) {
-				autonMoveForward(feetForwardCenter);
+			if (autonCheckPhaseCenter1 == false) {
+				autonMoveForwardCenter(feetForwardCenter);
 			} else {
 				drive.stop();
 			}
 			break;
 		case "3":
 			if (autonCheckPhase1 == false) {
-				autonMovePhase1(feetForward);
+				autonSideMovePhase1(feetForward);
 			} else if (autonCheckPhase2 == false) {
-				autonMovePhase2(55, -1);
+				autonSideMovePhase2(55, -1);
 			} else if (autonCheckPhase3 == false) {
-				autonMovePhase3(feetTurned);
+				autonSideMovePhase3(feetTurned);
 			}
 			break;
 		default:
-			System.out.println(gyro.getAngle());
 			break;
 		}
+		System.out.println(GYRO.getAngle());
 	}
 
-	// Returns how far the robot has moved in feet
-	// Possible todos: add a parameter to autonMovePhase1 (and 3) for number of
-	// feet to go, add new input to smart dashboard to set that parameter - so
-	// you can adjust distance for phases on the fly.
-	// Also for phase 2?
-	private double younkinsToRevolutions() {
-		double num = (Math.abs(drive.backLeftMotor.getPosition())) / oneRevolutionInYounkins;
-		num *= 25.13;
-		num /= 12;
-
-		System.out.println(num);
-
-		return num;
-	}
-
-	private void autonMoveForward(double feet) {
-		if (gyro.getAngle() > gyroFixAngle) {
-			drive.backRightMotor.set(autonSpeed + .05);
-			drive.frontRightMotor.set(autonSpeed + .05);
-			drive.backLeftMotor.set(autonSpeed);
-			drive.frontLeftMotor.set(autonSpeed);
-		} else if (gyro.getAngle() < -gyroFixAngle) {
-			drive.backRightMotor.set(autonSpeed);
-			drive.frontRightMotor.set(autonSpeed);
-			drive.backLeftMotor.set(autonSpeed + .05);
-			drive.frontLeftMotor.set(autonSpeed + .05);
-		} else if (younkinsToRevolutions() < feet - .1) {
-			drive.backRightMotor.set(autonSpeed);
-			drive.frontRightMotor.set(autonSpeed);
-			drive.backLeftMotor.set(autonSpeed);
-			drive.frontLeftMotor.set(autonSpeed);
-		} else if (younkinsToRevolutions() > feet + .1) {
-			drive.backRightMotor.set(-autonSpeed);
-			drive.frontRightMotor.set(-autonSpeed);
-			drive.backLeftMotor.set(-autonSpeed);
-			drive.frontLeftMotor.set(-autonSpeed);
-		} else {
-			drive.stop();
-			autonCheckPhase1 = true;
-			drive.backLeftMotor.setPosition(0);
+	private void autonMoveForwardCenter(double feet) {
+		System.out.println("Feet " + feet);
+		if (feet > 0) {
+			if (GYRO.getAngle() > gyroFixAngle) {
+				drive.backRightMotor.set(autonSpeed + .2);
+				drive.frontRightMotor.set(autonSpeed + .2);
+				drive.backLeftMotor.set(autonSpeed);
+				drive.frontLeftMotor.set(autonSpeed);
+			} else if (GYRO.getAngle() < -gyroFixAngle) {
+				drive.backRightMotor.set(autonSpeed);
+				drive.frontRightMotor.set(autonSpeed);
+				drive.backLeftMotor.set(autonSpeed + .2);
+				drive.frontLeftMotor.set(autonSpeed + .2);
+			} else if (younkinsToRevolutions() < feet) {
+				drive.backRightMotor.set(autonSpeed);
+				drive.frontRightMotor.set(autonSpeed);
+				drive.backLeftMotor.set(autonSpeed);
+				drive.frontLeftMotor.set(autonSpeed);
+			} else {
+				drive.stop();
+				autonCheckPhaseCenter1 = true;
+				drive.backLeftMotor.setPosition(0);
+			}
 		}
 	}
 
-	private void autonMovePhase1(double feet) {
-		if (gyro.getAngle() > gyroFixAngle) {
-			drive.backRightMotor.set(autonSpeed + .05);
-			drive.frontRightMotor.set(autonSpeed + .05);
+	private void autonSideMovePhase1(double feet) {
+		if (GYRO.getAngle() > gyroFixAngle) {
+			drive.backRightMotor.set(autonSpeed + .1);
+			drive.frontRightMotor.set(autonSpeed + .1);
 			drive.backLeftMotor.set(autonSpeed);
 			drive.frontLeftMotor.set(autonSpeed);
-		} else if (gyro.getAngle() < -gyroFixAngle) {
+		} else if (GYRO.getAngle() < -gyroFixAngle) {
 			drive.backRightMotor.set(autonSpeed);
 			drive.frontRightMotor.set(autonSpeed);
-			drive.backLeftMotor.set(autonSpeed + .05);
-			drive.frontLeftMotor.set(autonSpeed + .05);
+			drive.backLeftMotor.set(autonSpeed + .1);
+			drive.frontLeftMotor.set(autonSpeed + .1);
 		} else if (younkinsToRevolutions() < feet - .1) {
 			drive.backRightMotor.set(autonSpeed + .05);
 			drive.frontRightMotor.set(autonSpeed + .05);
@@ -258,13 +272,13 @@ public class Robot extends IterativeRobot {
 		}
 	}
 
-	private void autonMovePhase2(double gryoAngle, int posOrNeg) {
-		if (Math.abs(gyro.getAngle()) < gryoAngle - 1) {
+	private void autonSideMovePhase2(double gryoAngle, int posOrNeg) {
+		if (Math.abs(GYRO.getAngle()) < gryoAngle - 1) {
 			drive.backLeftMotor.set((autonSpeed + .05) * posOrNeg);
 			drive.frontLeftMotor.set((autonSpeed + .05) * posOrNeg);
 			drive.backRightMotor.set((-autonSpeed - .05) * posOrNeg);
 			drive.frontRightMotor.set((-autonSpeed - .05) * posOrNeg);
-		} else if (Math.abs(gyro.getAngle()) > gryoAngle + 1) {
+		} else if (Math.abs(GYRO.getAngle()) > gryoAngle + 1) {
 			drive.backLeftMotor.set((-autonSpeed - .05) * posOrNeg);
 			drive.frontLeftMotor.set((-autonSpeed - .05) * posOrNeg);
 			drive.backRightMotor.set((autonSpeed + .05) * posOrNeg);
@@ -276,8 +290,7 @@ public class Robot extends IterativeRobot {
 		}
 	}
 
-	private void autonMovePhase3(double feet) {
-		System.out.println(drive.backLeftMotor.getEncPosition());
+	private void autonSideMovePhase3(double feet) {
 
 		if (younkinsToRevolutions() < feet) {
 			drive.backRightMotor.set(autonSpeed);
@@ -294,10 +307,11 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void teleopInit() {
 		drive.stop();
-		drive.limitPercent = SmartDashboard.getNumber(speedPerKey, defaultDrivePer);
-		ropeClimber.climbSpeed = SmartDashboard.getNumber(climbSpeedKey, defaultClimbSpeed);
-		conveyorBelt.conveySpeed = SmartDashboard.getNumber(conveySpeedKey, defaultConveySpeed);
-		conveyorBelt.bumperConveySpeed = SmartDashboard.getNumber(bumperConveySpeedKey, defaultBumperConveySpeed);
+		drive.limitPercent = SmartDashboard.getNumber(SPEED_PERCENTAGE_KEY, DEFAULT_DRIVE_SPEED_PERCENTAGE);
+		ropeClimber.climbSpeed = SmartDashboard.getNumber(CLIMB_SPEED_KEY, DEFAULT_CLIMB_SPEED);
+		conveyorBelt.conveySpeed = SmartDashboard.getNumber(CONVEYOR_SPEED_KEY, DEFAULT_CONVEYOR_SPEED);
+		conveyorBelt.bumperConveySpeed = SmartDashboard.getNumber(BUMPER_CONVEYOR_SPEED_KEY,
+				DEFAULT_BUMPER_CONVEYOR_SPEED);
 	}
 
 	/**
@@ -337,4 +351,16 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void disabledInit() {
 	}
+
+	// Returns how far the robot has moved in feet
+	private double younkinsToRevolutions() {
+		double avg = (Math.abs(drive.backLeftMotor.getPosition()) + Math.abs(drive.backRightMotor.getPosition())
+				+ Math.abs(drive.frontLeftMotor.getPosition()) + Math.abs(drive.frontRightMotor.getPosition())) / 4;
+		System.out.println("Avg" + avg);
+		double num = Math.abs(avg) / ONE_REVOLUTION_IN_YOUNKINS;
+		num *= 25.13;
+		num /= 12;
+		return num;
+	}
+
 }
