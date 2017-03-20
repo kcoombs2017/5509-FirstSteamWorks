@@ -72,12 +72,15 @@ public class Robot extends IterativeRobot {
 	private final String SPEED_PERCENTAGE_KEY = "Teleop - Speed";
 	private final String HOLD_SPEED_KEY = "Teleop - Hold Rope Speed";
 	private final String BACK_SPEED_KEY = "Teleop - Back Rope Speed";
+	private final String CLIMB_SPEED_KEY = "Teleop - Rope Speed";
+	private final String BACKWARDS_CLIMB_SPEED_KEY = "Teleop - Backwards Rope Speed";
 	private final String CONVEYOR_SPEED_KEY = "Teleop - Conveyor Speed";
 	private final String BUMPER_CONVEYOR_SPEED_KEY = "Teleop - Bumper Conveyor Speed";
 
 	public final double DEFAULT_DRIVE_SPEED_PERCENTAGE = drive.limitPercent;
 	public final double DEFAULT_HOLD_SPEED = ropeClimber.holdSpeed;
 	public final double DEFAULT_BACK_ROPE_SPEED = ropeClimber.downSpeed;
+	public final double DEFAULT_BACKWARDS_CLIMB_SPEED = ropeClimber.backwardsClimbSpeed;
 	public final double DEFAULT_CONVEYOR_SPEED = conveyorBelt.conveySpeed;
 	public final double DEFAULT_BUMPER_CONVEYOR_SPEED = conveyorBelt.bumperConveySpeed;
 
@@ -130,6 +133,7 @@ public class Robot extends IterativeRobot {
 		SmartDashboard.putNumber(SPEED_PERCENTAGE_KEY, DEFAULT_DRIVE_SPEED_PERCENTAGE);
 		SmartDashboard.putNumber(HOLD_SPEED_KEY, DEFAULT_HOLD_SPEED);
 		SmartDashboard.putNumber(BACK_SPEED_KEY, DEFAULT_BACK_ROPE_SPEED);
+		SmartDashboard.putNumber(BACKWARDS_CLIMB_SPEED_KEY, DEFAULT_BACKWARDS_CLIMB_SPEED);
 		SmartDashboard.putNumber(CONVEYOR_SPEED_KEY, DEFAULT_CONVEYOR_SPEED);
 		SmartDashboard.putNumber(BUMPER_CONVEYOR_SPEED_KEY, DEFAULT_BUMPER_CONVEYOR_SPEED);
 		SmartDashboard.putNumber(AUTON_ANGLE_KEY, DEFAULT_AUTON_ANGLE);
@@ -313,6 +317,8 @@ public class Robot extends IterativeRobot {
 		drive.limitPercent = SmartDashboard.getNumber(SPEED_PERCENTAGE_KEY, DEFAULT_DRIVE_SPEED_PERCENTAGE);
 		ropeClimber.holdSpeed = SmartDashboard.getNumber(HOLD_SPEED_KEY, DEFAULT_HOLD_SPEED);
 		ropeClimber.downSpeed = SmartDashboard.getNumber(BACK_SPEED_KEY, DEFAULT_BACK_ROPE_SPEED);
+		ropeClimber.backwardsClimbSpeed = SmartDashboard.getNumber(BACKWARDS_CLIMB_SPEED_KEY,
+				DEFAULT_BACKWARDS_CLIMB_SPEED);
 		conveyorBelt.conveySpeed = SmartDashboard.getNumber(CONVEYOR_SPEED_KEY, DEFAULT_CONVEYOR_SPEED);
 		conveyorBelt.bumperConveySpeed = SmartDashboard.getNumber(BUMPER_CONVEYOR_SPEED_KEY,
 				DEFAULT_BUMPER_CONVEYOR_SPEED);
