@@ -71,16 +71,15 @@ public class Robot extends IterativeRobot {
 	// Speed Teleop
 	private final String SPEED_PERCENTAGE_KEY = "Teleop - Speed";
 	private final String HOLD_SPEED_KEY = "Teleop - Hold Rope Speed";
-	private final String BACK_SPEED_KEY = "Teleop - Back Rope Speed";
+	private final String BACK_CLIMB_SPEED_KEY = "Teleop - Back Rope Speed";
 	private final String CLIMB_SPEED_KEY = "Teleop - Rope Speed";
-	private final String BACKWARDS_CLIMB_SPEED_KEY = "Teleop - Backwards Rope Speed";
 	private final String CONVEYOR_SPEED_KEY = "Teleop - Conveyor Speed";
 	private final String BUMPER_CONVEYOR_SPEED_KEY = "Teleop - Bumper Conveyor Speed";
 
 	public final double DEFAULT_DRIVE_SPEED_PERCENTAGE = drive.limitPercent;
 	public final double DEFAULT_HOLD_SPEED = ropeClimber.holdSpeed;
 	public final double DEFAULT_BACK_ROPE_SPEED = ropeClimber.downSpeed;
-	public final double DEFAULT_BACKWARDS_CLIMB_SPEED = ropeClimber.backwardsClimbSpeed;
+	public final double DEFAULT_CLIMB_SPEED = ropeClimber.climbSpeed;
 	public final double DEFAULT_CONVEYOR_SPEED = conveyorBelt.conveySpeed;
 	public final double DEFAULT_BUMPER_CONVEYOR_SPEED = conveyorBelt.bumperConveySpeed;
 
@@ -105,8 +104,8 @@ public class Robot extends IterativeRobot {
 	public final DigitalInput MAGNET_SENSOR = new DigitalInput(2);
 	public final Ultrasonic SONAR_SENSOR = new Ultrasonic(1, 0);
 	public final ADXRS450_Gyro GYRO = new ADXRS450_Gyro();
-	public final Relay light = new Relay(0);
-	public final Timer time = new Timer();
+	private final static Relay light1 = new Relay(0);
+	private final static Relay light2 = new Relay(1);
 
 	// Actual numbers
 	public final int ONE_REVOLUTION_IN_YOUNKINS = 1000;
@@ -117,6 +116,8 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void robotInit() {
+		lightsSet(1);
+
 		CameraServer.getInstance().startAutomaticCapture();
 
 		joystick1 = new Joystick(0);
@@ -132,8 +133,8 @@ public class Robot extends IterativeRobot {
 		SmartDashboard.putNumber(AUTON_SPEED_KEY, DEFAULT_AUTON_SPEED);
 		SmartDashboard.putNumber(SPEED_PERCENTAGE_KEY, DEFAULT_DRIVE_SPEED_PERCENTAGE);
 		SmartDashboard.putNumber(HOLD_SPEED_KEY, DEFAULT_HOLD_SPEED);
-		SmartDashboard.putNumber(BACK_SPEED_KEY, DEFAULT_BACK_ROPE_SPEED);
-		SmartDashboard.putNumber(BACKWARDS_CLIMB_SPEED_KEY, DEFAULT_BACKWARDS_CLIMB_SPEED);
+		SmartDashboard.putNumber(BACK_CLIMB_SPEED_KEY, DEFAULT_BACK_ROPE_SPEED);
+		SmartDashboard.putNumber(CLIMB_SPEED_KEY, DEFAULT_CLIMB_SPEED);
 		SmartDashboard.putNumber(CONVEYOR_SPEED_KEY, DEFAULT_CONVEYOR_SPEED);
 		SmartDashboard.putNumber(BUMPER_CONVEYOR_SPEED_KEY, DEFAULT_BUMPER_CONVEYOR_SPEED);
 		SmartDashboard.putNumber(AUTON_ANGLE_KEY, DEFAULT_AUTON_ANGLE);
@@ -316,12 +317,13 @@ public class Robot extends IterativeRobot {
 		drive.stop();
 		drive.limitPercent = SmartDashboard.getNumber(SPEED_PERCENTAGE_KEY, DEFAULT_DRIVE_SPEED_PERCENTAGE);
 		ropeClimber.holdSpeed = SmartDashboard.getNumber(HOLD_SPEED_KEY, DEFAULT_HOLD_SPEED);
-		ropeClimber.downSpeed = SmartDashboard.getNumber(BACK_SPEED_KEY, DEFAULT_BACK_ROPE_SPEED);
-		ropeClimber.backwardsClimbSpeed = SmartDashboard.getNumber(BACKWARDS_CLIMB_SPEED_KEY,
-				DEFAULT_BACKWARDS_CLIMB_SPEED);
+		ropeClimber.downSpeed = SmartDashboard.getNumber(BACK_CLIMB_SPEED_KEY, DEFAULT_BACK_ROPE_SPEED);
+		ropeClimber.climbSpeed = SmartDashboard.getNumber(CLIMB_SPEED_KEY, DEFAULT_CLIMB_SPEED);
 		conveyorBelt.conveySpeed = SmartDashboard.getNumber(CONVEYOR_SPEED_KEY, DEFAULT_CONVEYOR_SPEED);
 		conveyorBelt.bumperConveySpeed = SmartDashboard.getNumber(BUMPER_CONVEYOR_SPEED_KEY,
 				DEFAULT_BUMPER_CONVEYOR_SPEED);
+
+		light1.set(Relay.Value.kOn);
 	}
 
 	/**
@@ -332,15 +334,6 @@ public class Robot extends IterativeRobot {
 		drive.move();
 		conveyorBelt.move();
 		ropeClimber.move();
-
-		if (joystick1.getRawButton(1) == true) {
-			SmartDashboard.putBoolean("ButtonPressed", true);
-			light.set(Relay.Value.kOn);
-		}
-		if (joystick1.getRawButton(1) == false) {
-			SmartDashboard.putBoolean("ButtonPressed", false);
-			light.set(Relay.Value.kOff);
-		}
 	}
 
 	/**
@@ -356,6 +349,12 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void disabledPeriodic() {
+	}
+
+	public static void lightsSet(double time) {
+		light2.set(Relay.Value.kOn);
+		Timer.delay(time);
+		light1.set(Relay.Value.kOn);
 	}
 
 	@Override
