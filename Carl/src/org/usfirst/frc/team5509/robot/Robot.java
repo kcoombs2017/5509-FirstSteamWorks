@@ -104,8 +104,8 @@ public class Robot extends IterativeRobot {
 	public final DigitalInput MAGNET_SENSOR = new DigitalInput(2);
 	public final Ultrasonic SONAR_SENSOR = new Ultrasonic(1, 0);
 	public final ADXRS450_Gyro GYRO = new ADXRS450_Gyro();
-	private final static Relay light1 = new Relay(0);
-	private final static Relay light2 = new Relay(1);
+	public final static Relay light1 = new Relay(0);
+	public final static Relay light2 = new Relay(1);
 
 	// Actual numbers
 	public final int ONE_REVOLUTION_IN_YOUNKINS = 1000;

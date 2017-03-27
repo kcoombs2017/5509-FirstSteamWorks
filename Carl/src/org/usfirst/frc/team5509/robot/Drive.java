@@ -1,7 +1,10 @@
 package org.usfirst.frc.team5509.robot;
 
 import com.ctre.CANTalon;
+
+import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.Timer;
 
 public class Drive {
 
@@ -37,8 +40,23 @@ public class Drive {
 		x = applyDeadBand(x, .2);
 		y = applyDeadBand(y, .2);
 		rotation = applyDeadBand(rotation, .2);
-		
+
+		if (y < 0) {
+			lightsSetDrive(.5);
+		} else {
+			Robot.light1.set(Relay.Value.kOn);
+		}
+
 		robotDrive.mecanumDrive_Cartesian(-x * limitPercent, y * limitPercent, rotation * limitPercent, 0);
+	}
+
+	private void lightsSetDrive(double time) {
+		Robot.light1.set(Relay.Value.kOn);
+		Robot.light2.set(Relay.Value.kOn);
+		Timer.delay(time);
+		Robot.light1.set(Relay.Value.kOff);
+		Robot.light2.set(Relay.Value.kOff);
+		Timer.delay(time);
 	}
 
 	public double applyDeadBand(double value, double deadBand) {
