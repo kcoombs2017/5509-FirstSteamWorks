@@ -40,23 +40,23 @@ public class Robot extends IterativeRobot {
 	// Feet Auton
 	private final String FEET_TURNED_KEY = "Auton - Feet Turned";
 	private double feetTurned;
-	public final double DEFAULT_FEET_TURNED = 5.9;
+	public final double DEFAULT_FEET_TURNED = 7.0;
 
 	private final String FEET_FORWARD_KEY = "Auton - Feet Forward";
 	private double feetForward;
-	public final double DEFAULT_FEET_FORWARD = 4.5;
+	public final double DEFAULT_FEET_FORWARD = 9.5;
 
 	private final String FEET_FORWARD_CENTER_KEY = "Auton - Feet Forward Center";
 	private double feetForwardCenter;
-	public final double DEFAULT_FEET_FORWARD_CENTER = 5.8;
+	public final double DEFAULT_FEET_FORWARD_CENTER = 9.2;
 
 	// ********************************************
 
 	// Angles Auton
 	private final String AUTON_ANGLE_KEY = "Auton - Angle to turn";
 	private double angle;
+	public final double DEFAULT_AUTON_ANGLE = 50;
 
-	public final double DEFAULT_AUTON_ANGLE = 60;
 	private final String GYRO_FIX_ANGLE_KEY = "Auton - Angle of Gyro in Phase 1 (Forward)";
 
 	private double gyroFixAngle;
@@ -116,8 +116,6 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void robotInit() {
-		lightsSet(1);
-
 		CameraServer.getInstance().startAutomaticCapture();
 
 		joystick1 = new Joystick(0);
@@ -194,6 +192,8 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
+		lightsSet(.2);
+
 		switch (autoSelected) {
 		case "1":
 			if (autonCheckPhase1 == false) {
@@ -215,7 +215,7 @@ public class Robot extends IterativeRobot {
 			if (autonCheckPhase1 == false) {
 				autonSideMovePhase1(feetForward);
 			} else if (autonCheckPhase2 == false) {
-				autonSideMovePhase2(55, -1);
+				autonSideMovePhase2(angle, -1);
 			} else if (autonCheckPhase3 == false) {
 				autonSideMovePhase3(feetTurned);
 			}
@@ -223,22 +223,20 @@ public class Robot extends IterativeRobot {
 		default:
 			break;
 		}
-		System.out.println(GYRO.getAngle());
 	}
 
 	private void autonMoveForwardCenter(double feet) {
-		System.out.println("Feet " + feet);
 		if (feet > 0) {
 			if (GYRO.getAngle() > gyroFixAngle) {
-				drive.backRightMotor.set(autonSpeed + .2);
-				drive.frontRightMotor.set(autonSpeed + .2);
+				drive.backRightMotor.set(autonSpeed + .125);
+				drive.frontRightMotor.set(autonSpeed + .125);
 				drive.backLeftMotor.set(autonSpeed);
 				drive.frontLeftMotor.set(autonSpeed);
 			} else if (GYRO.getAngle() < -gyroFixAngle) {
 				drive.backRightMotor.set(autonSpeed);
 				drive.frontRightMotor.set(autonSpeed);
-				drive.backLeftMotor.set(autonSpeed + .2);
-				drive.frontLeftMotor.set(autonSpeed + .2);
+				drive.backLeftMotor.set(autonSpeed + .125);
+				drive.frontLeftMotor.set(autonSpeed + .125);
 			} else if (younkinsToRevolutions() < feet) {
 				drive.backRightMotor.set(autonSpeed);
 				drive.frontRightMotor.set(autonSpeed);
@@ -248,6 +246,9 @@ public class Robot extends IterativeRobot {
 				drive.stop();
 				autonCheckPhaseCenter1 = true;
 				drive.backLeftMotor.setPosition(0);
+				drive.backRightMotor.setPosition(0);
+				drive.frontRightMotor.setPosition(0);
+				drive.frontLeftMotor.setPosition(0);
 			}
 		}
 	}
@@ -263,43 +264,38 @@ public class Robot extends IterativeRobot {
 			drive.frontRightMotor.set(autonSpeed);
 			drive.backLeftMotor.set(autonSpeed + .1);
 			drive.frontLeftMotor.set(autonSpeed + .1);
-		} else if (younkinsToRevolutions() < feet - .1) {
+		} else if (younkinsToRevolutions() < feet) {
 			drive.backRightMotor.set(autonSpeed + .05);
 			drive.frontRightMotor.set(autonSpeed + .05);
 			drive.backLeftMotor.set(autonSpeed + .05);
 			drive.frontLeftMotor.set(autonSpeed + .05);
-		} else if (younkinsToRevolutions() > feet + .1) {
-			drive.backRightMotor.set(-autonSpeed - .05);
-			drive.frontRightMotor.set(-autonSpeed - .05);
-			drive.backLeftMotor.set(-autonSpeed - .05);
-			drive.frontLeftMotor.set(-autonSpeed - .05);
 		} else {
 			drive.stop();
 			autonCheckPhase1 = true;
 			drive.backLeftMotor.setPosition(0);
+			drive.backRightMotor.setPosition(0);
+			drive.frontRightMotor.setPosition(0);
+			drive.frontLeftMotor.setPosition(0);
 		}
 	}
 
 	private void autonSideMovePhase2(double gryoAngle, int posOrNeg) {
-		if (Math.abs(GYRO.getAngle()) < gryoAngle - 1) {
+		if (Math.abs(GYRO.getAngle()) < gryoAngle) {
 			drive.backLeftMotor.set((autonSpeed + .05) * posOrNeg);
 			drive.frontLeftMotor.set((autonSpeed + .05) * posOrNeg);
 			drive.backRightMotor.set((-autonSpeed - .05) * posOrNeg);
 			drive.frontRightMotor.set((-autonSpeed - .05) * posOrNeg);
-		} else if (Math.abs(GYRO.getAngle()) > gryoAngle + 1) {
-			drive.backLeftMotor.set((-autonSpeed - .05) * posOrNeg);
-			drive.frontLeftMotor.set((-autonSpeed - .05) * posOrNeg);
-			drive.backRightMotor.set((autonSpeed + .05) * posOrNeg);
-			drive.frontRightMotor.set((autonSpeed + .05) * posOrNeg);
 		} else {
 			drive.stop();
 			autonCheckPhase2 = true;
 			drive.backLeftMotor.setPosition(0);
+			drive.backRightMotor.setPosition(0);
+			drive.frontRightMotor.setPosition(0);
+			drive.frontLeftMotor.setPosition(0);
 		}
 	}
 
 	private void autonSideMovePhase3(double feet) {
-
 		if (younkinsToRevolutions() < feet) {
 			drive.backRightMotor.set(autonSpeed);
 			drive.frontRightMotor.set(autonSpeed);
@@ -309,6 +305,9 @@ public class Robot extends IterativeRobot {
 			drive.stop();
 			autonCheckPhase3 = true;
 			drive.backLeftMotor.setPosition(0);
+			drive.backRightMotor.setPosition(0);
+			drive.frontRightMotor.setPosition(0);
+			drive.frontLeftMotor.setPosition(0);
 		}
 	}
 
@@ -332,8 +331,8 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void teleopPeriodic() {
 		drive.move();
-		conveyorBelt.move();
 		ropeClimber.move();
+		conveyorBelt.move();
 	}
 
 	/**
@@ -349,12 +348,16 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void disabledPeriodic() {
+		lightsSet(.15);
 	}
 
 	public static void lightsSet(double time) {
 		light2.set(Relay.Value.kOn);
+		light1.set(Relay.Value.kOff);
 		Timer.delay(time);
 		light1.set(Relay.Value.kOn);
+		light2.set(Relay.Value.kOff);
+		Timer.delay(time);
 	}
 
 	@Override

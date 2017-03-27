@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.RobotDrive;
 public class Drive {
 
 	public CANTalon backRightMotor, frontRightMotor, frontLeftMotor, backLeftMotor;
-	public double limitPercent = .75;
+	public double limitPercent = .85;
 
 	RobotDrive robotDrive;
 
@@ -26,9 +26,6 @@ public class Drive {
 	}
 
 	public void move() {
-
-		System.out.println(backLeftMotor.getPosition() + " " + backLeftMotor.getEncPosition());
-
 		if (backLeftMotor.getEncPosition() < -170) {
 			backLeftMotor.setEncPosition(0);
 		}
@@ -36,11 +33,11 @@ public class Drive {
 		double x = Robot.joystick1.getRawAxis(0);
 		double y = Robot.joystick1.getRawAxis(1);
 		double rotation = Robot.joystick1.getRawAxis(4);
-		System.out.println("Before dead " + x + " " + y + " " + rotation);
+
 		x = applyDeadBand(x, .2);
 		y = applyDeadBand(y, .2);
 		rotation = applyDeadBand(rotation, .2);
-		System.out.println("After dead " + x + " " + y + " " + rotation);
+		
 		robotDrive.mecanumDrive_Cartesian(-x * limitPercent, y * limitPercent, rotation * limitPercent, 0);
 	}
 

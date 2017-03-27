@@ -4,8 +4,8 @@ import com.ctre.CANTalon;
 
 public class ConveyorBelt {
 	public CANTalon conveyorMotor;
-	public double conveySpeed = .35;
-	public double bumperConveySpeed = .5;
+	public double conveySpeed = .5;
+	public double bumperConveySpeed = .7;
 
 	public void Init() {
 		conveyorMotor = new CANTalon(5);

@@ -16,26 +16,19 @@ public class RopeClimber {
 	}
 
 	public void move() {
-		double x = Robot.joystick2.getRawAxis(1);
-		if (((Math.abs(x) > .2) && (Robot.joystick2.getRawButton(2) == true))
-				|| ((Robot.joystick2.getRawButton(1) == true) && (Robot.joystick2.getRawAxis(1) > .2))) {
+		double joystick2YVal = Robot.joystick2.getRawAxis(1);
+		boolean buttonY = Robot.joystick2.getRawButton(4);
+
+		if (((Math.abs(joystick2YVal) > .2) && (buttonY == true))) {
 			stop();
-		} else if (Robot.joystick2.getRawButton(2) == true) {
-			ropeMotor1.set(downSpeed * .88);
-			ropeMotor2.set(downSpeed);
-			Robot.lightsSet(1);
-		} else if (Robot.joystick2.getRawButton(4) == true) {
+		} else if (buttonY == true) {
 			ropeMotor1.set(holdSpeed * .88);
 			ropeMotor2.set(holdSpeed);
-			Robot.lightsSet(.25);
-		} else if (Robot.joystick2.getRawButton(1) == true) {
-			ropeMotor1.set(climbSpeed * .88);
-			ropeMotor2.set(climbSpeed);
-			Robot.lightsSet(.5);
-		} else if (Math.abs(x) > .2) {
-			ropeMotor1.set(x * .88);
-			ropeMotor2.set(x);
-			Robot.lightsSet(.5);
+			//Robot.lightsSet(.25);
+		} else if (Math.abs(joystick2YVal) > .2) {
+			ropeMotor1.set(joystick2YVal * .88);
+			ropeMotor2.set(joystick2YVal);
+			//Robot.lightsSet(.5);
 		} else {
 			stop();
 		}
